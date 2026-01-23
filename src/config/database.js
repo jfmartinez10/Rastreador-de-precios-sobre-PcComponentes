@@ -52,7 +52,6 @@ const testConnection = async () => {
   }
 };
 
-// ← ESTA PARTE ES CRÍTICA
 module.exports = {
   query,
   transaction,
