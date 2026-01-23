@@ -1,20 +1,61 @@
-import pkg from 'pg';
-const { Pool } = pkg;
-import 'dotenv/config';
+const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DB_URL,
   ssl: {
-    rejectUnauthorized: false, // Necesario para conexiones externas a Supabase
-  },
-});
-
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('❌ Error conectando a Supabase:', err.stack);
-  } else {
-    console.log('✅ Conexión exitosa a la base de datos a las:', res.rows[0].now);
+    rejectUnauthorized: false
   }
 });
 
-export default pool;
+pool.on('error', (err) => {
+  console.error('Error inesperado en el cliente de PostgreSQL:', err);
+  process.exit(-1);
+});
+
+const query = async (text, params) => {
+  const start = Date.now();
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log('Query ejecutada:', { text: text.substring(0, 50), duration, rows: res.rowCount });
+    return res;
+  } catch (error) {
+    console.error('Error en query:', error);
+    throw error;
+  }
+};
+
+const transaction = async (callback) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+const testConnection = async () => {
+  try {
+    const res = await query('SELECT NOW()');
+    console.log('✅ Conexión a PostgreSQL exitosa:', res.rows[0].now);
+    return true;
+  } catch (error) {
+    console.error('❌ Error conectando a PostgreSQL:', error.message);
+    return false;
+  }
+};
+
+// ← ESTA PARTE ES CRÍTICA
+module.exports = {
+  query,
+  transaction,
+  testConnection,
+  pool
+};
