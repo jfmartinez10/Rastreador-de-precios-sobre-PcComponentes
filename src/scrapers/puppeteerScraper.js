@@ -61,11 +61,6 @@ class PuppeteerScraper {
 
         // Imagen (búsqueda inteligente y genérica)
         const imagenElement = Array.from(document.querySelectorAll('img')).find(img => {
-          // 1. Debe tener src válido
-          // 2. Debe ser lo suficientemente grande (ancho > 200px)
-          // 3. NO debe ser el logo de la tienda
-          // 4. NO debe ser un icono pequeño
-          // 5. Preferiblemente que esté en el contenedor del producto
           
           if (!img.src || img.src === '') return false; // Debe tener src válido
           if (img.width < 200 || img.height < 200) return false; // Debe ser lo suficientemente grande (ancho > 200px)
