@@ -1,11 +1,10 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const db = require('./src/config/database');
+import express from 'express';
+import cors from 'cors';
+import db from './src/config/database.js';
 
 // Importar rutas
-const productosRoutes = require('./src/routes/productos');
-const analyticsRoutes = require('./src/routes/analytics');
+import productosRoutes from './src/routes/productos.js';
+import analyticsRoutes from './src/routes/analytics.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -118,4 +117,4 @@ process.on('SIGINT', () => {
 // Iniciar aplicación
 iniciarServidor();
 
-module.exports = app;
+export default app;

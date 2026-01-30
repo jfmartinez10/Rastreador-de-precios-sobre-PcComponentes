@@ -1,4 +1,4 @@
-const db = require('../config/database');
+import db from '../config/database.js';
 
 class Producto {
   // Crear un nuevo producto
@@ -146,4 +146,4 @@ class Producto {
   }
 }
 
-module.exports = Producto;
+export default Producto;

@@ -1,4 +1,4 @@
-const db = require('../config/database');
+import db from '../config/database.js';
 
 class HistorialPrecios {
   // Registra un nuevo precio
@@ -110,4 +110,4 @@ class HistorialPrecios {
   }
 }
 
-module.exports = HistorialPrecios;
+export default HistorialPrecios;

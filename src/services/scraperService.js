@@ -1,6 +1,6 @@
-const PuppeteerScraper = require('../scrapers/puppeteerScraper');
-const Producto = require('../models/producto');
-const HistorialPrecios = require('../models/historialPrecios'); 
+import PuppeteerScraper from '../scrapers/puppeteerScraper.js';
+import Producto from '../models/producto.js';
+import HistorialPrecios from '../models/historialPrecios.js';
 
 class ScraperService {
   constructor() {
@@ -134,4 +134,4 @@ class ScraperService {
   }
 }
 
-module.exports = new ScraperService();
+export default new ScraperService();

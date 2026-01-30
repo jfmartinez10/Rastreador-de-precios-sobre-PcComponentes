@@ -1,4 +1,5 @@
-const BaseScraper = require('./baseScraper');
+import BaseScraper from './baseScraper.js';
+import * as cheerio from 'cheerio';
 
 // Clase que hereda de BaseScraper
 class PCComponentesScraper extends BaseScraper {
@@ -171,4 +172,4 @@ class PCComponentesScraper extends BaseScraper {
   }
 }
 
-module.exports = PCComponentesScraper;
+export default PCComponentesScraper;

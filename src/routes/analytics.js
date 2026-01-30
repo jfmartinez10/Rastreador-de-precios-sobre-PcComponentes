@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const HistorialPrecios = require('../models/historialPrecios');
-const db = require('../config/database');
+import HistorialPrecios from '../models/historialPrecios.js';
+import db from '../config/database.js';
 
 // ============================================
 // POST /api/analytics/comparar - Comparar productos
@@ -264,4 +264,4 @@ router.get('/tendencias', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

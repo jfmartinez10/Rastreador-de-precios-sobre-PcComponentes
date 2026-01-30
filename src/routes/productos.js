@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const Producto = require('../models/producto');
-const HistorialPrecios = require('../models/historialPrecios');
-const scraperService = require('../services/scraperService');
+import Producto from '../models/producto.js';
+import HistorialPrecios from '../models/historialPrecios.js';
+import scraperService from '../services/scraperService.js';
 
 // Listar todos los productos
 router.get('/', async (req, res) => {
@@ -233,4 +233,4 @@ router.get('/:id/cambios-precio', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,5 +1,4 @@
-require('dotenv').config();
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 class PuppeteerScraper {
   constructor() {
@@ -101,4 +100,4 @@ class PuppeteerScraper {
   }
 }
 
-module.exports = PuppeteerScraper;
+export default PuppeteerScraper;
