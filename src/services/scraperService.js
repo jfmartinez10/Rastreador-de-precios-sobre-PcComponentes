@@ -1,10 +1,12 @@
-import PuppeteerScraper from '../scrapers/puppeteerScraper.js';
+import PCComponentesScraper from '../scrapers/pccomponentesScraper.js';
 import Producto from '../models/producto.js';
 import HistorialPrecios from '../models/historialPrecios.js';
 
 class ScraperService {
   constructor() {
-    this.scraper = new PuppeteerScraper();
+    // Usamos el scraper específico de PCComponentes (axios/cheerio) por defecto
+    // Es más rápido y consume menos recursos que Puppeteer
+    this.scraper = new PCComponentesScraper();
   }
 
   async añadirProducto(url, categoria = null) {
@@ -20,7 +22,7 @@ class ScraperService {
         url: url,
         tienda: datosScrap.tienda,
         categoria: categoria,
-        imagen_url: datosScrap.imagen
+        imagen_url: datosScrap.imagen_url // Corregido: imagen -> imagen_url
       });
 
       console.log(`✅ Producto creado con ID: ${producto.id}`);
