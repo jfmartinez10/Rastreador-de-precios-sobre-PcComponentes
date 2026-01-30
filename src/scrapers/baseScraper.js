@@ -5,7 +5,7 @@ class BaseScraper {
   constructor() {
     this.userAgent = process.env.USER_AGENT || 
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
-    this.timeout = 15000; // Aumentado a 15 segundos
+    this.timeout = 15000;
   }
 
   async fetchPage(url) {
@@ -35,10 +35,6 @@ class BaseScraper {
         console.error(`❌ Error ${error.response.status}: ${error.response.statusText}`);
         if (error.response.status === 403) {
           console.error('⚠️ PCComponentes bloqueó la petición');
-          console.error('💡 Intenta:');
-          console.error('   1. Esperar unos minutos');
-          console.error('   2. Probar con otra URL');
-          console.error('   3. Verificar tu User-Agent');
         }
       }
       throw new Error(`No se pudo acceder a la página: ${error.message}`);
@@ -78,10 +74,9 @@ class BaseScraper {
     }
   }
 
-  // Nueva función: delay aleatorio
   async randomDelay(min = 2000, max = 5000) {
     const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    console.log(`⏳ Esperando ${delay}ms para no ser detectado como bot...`);
+    console.log(`⏳ Esperando ${delay}ms...`);
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 }
