@@ -14,7 +14,7 @@ class PuppeteerScraper {
       console.log('🚀 Abriendo navegador...');
       
       browser = await puppeteer.launch({
-        headless: 'new', // Ejecuta el navegador sin ventana
+        headless: true, // Ejecuta el navegador sin ventana
         args: [
           '--no-sandbox', // Desactiva el modo aislamiento
           '--disable-setuid-sandbox', // Evita problemas de permisos en entornos Linux al ejecutar el navegador como root
@@ -76,7 +76,7 @@ class PuppeteerScraper {
           nombre,
           precio: isNaN(precio) ? null : precio,
           disponible,
-          imagen
+          imagen_url: imagen // Devolvemos como imagen_url para consistencia
         };
       });
 
