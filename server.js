@@ -14,10 +14,10 @@ const PORT = process.env.PORT || 3000;
 // ============================================
 app.use(cors()); // Permitir peticiones desde cualquier origen
 app.use(express.json()); // Parsear JSON en el body
-app.use(express.urlencoded({ extended: true }));
-
 // Servir archivos estáticos (frontend)
 app.use(express.static('public'));
+
+
 
 // Logging de peticiones
 app.use((req, res, next) => {
