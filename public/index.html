@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rastreador PCComponentes - CamelClone</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Chart.js para gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome para iconos -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="#" class="logo"><i class="fas fa-camel"></i> CamelClone PC</a>
+
+        <div class="search-bar">
+          <input
+            type="text"
+            id="urlInput"
+            class="search-input"
+            placeholder="Pega una URL de PCComponentes para trackear..."
+          />
+          <button id="addBtn" class="search-btn">
+            <i class="fas fa-plus"></i> Rastrear
+          </button>
+        </div>
+
+        <div class="menu">
+          <a href="#chollos" class="btn btn-primary">🔥 Chollos</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Sección de Mejores Ofertas (Top Drops) -->
+      <section id="chollos">
+        <h2>🔥 Mejores Ofertas (Top Descuentos)</h2>
+        <div id="topDropsGrid" class="grid">
+          <div class="loading">Cargando mejores ofertas...</div>
+        </div>
+      </section>
+
+      <!-- Sección de Recientes / Todos -->
+      <section id="todos">
+        <h2>📦 Productos Rastreaciones Recientemente</h2>
+        <div id="productsGrid" class="grid">
+          <div class="loading">Cargando productos...</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal para Historial de Precios -->
+    <div id="historyModal" class="modal">
+      <div class="modal-content">
+        <button class="close-btn">&times;</button>
+        <h2 id="modalTitle">Historial de Precios</h2>
+        <div style="height: 400px; position: relative">
+          <canvas id="priceChart"></canvas>
+        </div>
+        <div class="card-actions" style="margin-top: 1rem">
+          <button id="forceUpdateBtn" class="btn btn-primary">
+            <i class="fas fa-sync"></i> Actualizar Precio Ahora
+          </button>
+          <a id="productLink" href="#" target="_blank" class="btn btn-outline"
+            >Ver en Tienda <i class="fas fa-external-link-alt"></i
+          ></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
