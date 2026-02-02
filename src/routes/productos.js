@@ -4,24 +4,33 @@ import Producto from '../models/producto.js';
 import HistorialPrecios from '../models/historialPrecios.js';
 import scraperService from '../services/scraperService.js';
 
-// Listar todos los productos
+// Get /api/productos - listar todos los productos
 router.get('/', async (req, res) => {
   try {
-    const { activo, tienda, limite, offset } = req.query;
-    
+    const limite = parseInt(req.query.limite) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const activo = req.query.activo !== undefined ? req.query.activo === 'true' : true;
+    const tienda = req.query.tienda || null;
+
     const productos = await Producto.obtenerTodos({
-      activo: activo === 'true' ? true : activo === 'false' ? false : null,
-      tienda: tienda,
-      limite: parseInt(limite) || 100,
-      offset: parseInt(offset) || 0
+      activo,
+      tienda,
+      limite,
+      offset
     });
+
+    const total = await Producto.contarTodos({ activo, tienda });
 
     res.json({
       exito: true,
       cantidad: productos.length,
+      total: total,
+      pagina: Math.floor(offset / limite) + 1,
+      total_paginas: Math.ceil(total / limite),
       datos: productos
     });
   } catch (error) {
+    console.error('Error obteniendo productos:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -29,11 +38,70 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Obtener un producto específico
+// Get /api/productos/destacados - productos destacados
+router.get('/destacados', async (req, res) => {
+  try {
+    const limite = parseInt(req.query.limite) || 5;
+    const productos = await Producto.obtenerDestacados(limite);
+
+    res.json({
+      exito: true,
+      cantidad: productos.length,
+      datos: productos
+    });
+  } catch (error) {
+    console.error('Error obteniendo destacados:', error);
+    res.status(500).json({
+      exito: false,
+      error: error.message
+    });
+  }
+});
+
+// Get /api/productos/buscar - buscar productos
+router.get('/buscar', async (req, res) => {
+  try {
+    const termino = req.query.q || '';
+    const limite = parseInt(req.query.limite) || 20;
+
+    if (!termino || termino.trim().length < 2) {
+      return res.status(400).json({
+        exito: false,
+        error: 'Se requiere un término de búsqueda de al menos 2 caracteres'
+      });
+    }
+
+    const productos = await Producto.buscar(termino, limite);
+
+    res.json({
+      exito: true,
+      cantidad: productos.length,
+      termino: termino,
+      datos: productos
+    });
+  } catch (error) {
+    console.error('Error buscando productos:', error);
+    res.status(500).json({
+      exito: false,
+      error: error.message
+    });
+  }
+});
+
+// Get /api/productos/:id - obtener un producto
 router.get('/:id', async (req, res) => {
   try {
-    const producto = await Producto.obtenerPorId(req.params.id);
-    
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const producto = await Producto.obtenerPorId(id);
+
     if (!producto) {
       return res.status(404).json({
         exito: false,
@@ -46,6 +114,7 @@ router.get('/:id', async (req, res) => {
       datos: producto
     });
   } catch (error) {
+    console.error('Error obteniendo producto:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -53,19 +122,18 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Añadir nuevo producto
+// Post /api/productos - crear/añadir producto
 router.post('/', async (req, res) => {
   try {
     const { url, categoria } = req.body;
 
-    if (!url) {
+    if (!url || !url.trim()) {
       return res.status(400).json({
         exito: false,
-        error: 'La URL del producto es obligatoria'
+        error: 'La URL es requerida'
       });
     }
 
-    // Validar que sea de PCComponentes
     if (!url.includes('pccomponentes.com')) {
       return res.status(400).json({
         exito: false,
@@ -73,27 +141,51 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Verificar si ya existe
+    const existente = await Producto.obtenerPorUrl(url);
+    if (existente) {
+      return res.json({
+        exito: true,
+        yaExistia: true,
+        mensaje: 'Este producto ya está siendo monitoreado',
+        datos: {
+          producto: existente
+        }
+      });
+    }
+
+    // Añadir producto usando el servicio de scraping
     const resultado = await scraperService.añadirProducto(url, categoria);
 
     res.status(201).json({
       exito: true,
+      yaExistia: false,
       mensaje: 'Producto añadido correctamente',
       datos: resultado
     });
   } catch (error) {
+    console.error('Error añadiendo producto:', error);
     res.status(500).json({
       exito: false,
-      error: error.message
+      error: error.message || 'Error al añadir el producto'
     });
   }
 });
 
-// Actualizar producto
+// Put /api/productos/:id - actualizar producto
 router.put('/:id', async (req, res) => {
   try {
+    const id = parseInt(req.params.id);
     const { nombre, categoria, imagen_url, activo } = req.body;
-    
-    const producto = await Producto.actualizar(req.params.id, {
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const producto = await Producto.actualizar(id, {
       nombre,
       categoria,
       imagen_url,
@@ -113,6 +205,7 @@ router.put('/:id', async (req, res) => {
       datos: producto
     });
   } catch (error) {
+    console.error('Error actualizando producto:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -120,10 +213,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Eliminar producto
+// Delete /api/productos/:id - eliminar producto
 router.delete('/:id', async (req, res) => {
   try {
-    const producto = await Producto.eliminar(req.params.id);
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const producto = await Producto.eliminar(id);
 
     if (!producto) {
       return res.status(404).json({
@@ -138,6 +240,7 @@ router.delete('/:id', async (req, res) => {
       datos: producto
     });
   } catch (error) {
+    console.error('Error eliminando producto:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -145,16 +248,25 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Obtener histórico de precios
+// Get /api/productos/:id/historial - historial de precios
 router.get('/:id/historial', async (req, res) => {
   try {
-    const { limite, offset, fecha_inicio, fecha_fin } = req.query;
+    const id = parseInt(req.params.id);
+    const limite = parseInt(req.query.limite) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+    const periodo = req.query.periodo || null;
 
-    const historial = await HistorialPrecios.obtenerPorProductoId(req.params.id, {
-      limite: parseInt(limite) || 100,
-      offset: parseInt(offset) || 0,
-      fecha_inicio: fecha_inicio,
-      fecha_fin: fecha_fin
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const historial = await HistorialPrecios.obtenerPorProductoId(id, {
+      limite,
+      offset,
+      periodo
     });
 
     res.json({
@@ -163,6 +275,7 @@ router.get('/:id/historial', async (req, res) => {
       datos: historial
     });
   } catch (error) {
+    console.error('Error obteniendo historial:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -170,16 +283,29 @@ router.get('/:id/historial', async (req, res) => {
   }
 });
 
-// Obtener estadísticas
-router.get('/:id/estadisticas', async (req, res) => {
+// Get /api/productos/:id/historial-grafica - historial para gráficas
+router.get('/:id/historial-grafica', async (req, res) => {
   try {
-    const stats = await Producto.obtenerEstadisticas(req.params.id);
+    const id = parseInt(req.params.id);
+    const periodo = req.query.periodo || 'all';
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const historial = await HistorialPrecios.obtenerHistorialGrafica(id, periodo);
 
     res.json({
       exito: true,
-      datos: stats
+      cantidad: historial.length,
+      periodo: periodo,
+      datos: historial
     });
   } catch (error) {
+    console.error('Error obteniendo historial para gráfica:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -187,11 +313,46 @@ router.get('/:id/estadisticas', async (req, res) => {
   }
 });
 
-// Forzar actualización
+// Get /api/productos/:id/estadisticas - estadísticas del producto
+router.get('/:id/estadisticas', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const estadisticas = await Producto.obtenerEstadisticas(id);
+
+    res.json({
+      exito: true,
+      datos: estadisticas
+    });
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
+    res.status(500).json({
+      exito: false,
+      error: error.message
+    });
+  }
+});
+
+// Post /api/productos/:id/actualizar-precio - forzar actualización
 router.post('/:id/actualizar-precio', async (req, res) => {
   try {
-    const producto = await Producto.obtenerPorId(req.params.id);
+    const id = parseInt(req.params.id);
 
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const producto = await Producto.obtenerPorId(id);
     if (!producto) {
       return res.status(404).json({
         exito: false,
@@ -203,10 +364,11 @@ router.post('/:id/actualizar-precio', async (req, res) => {
 
     res.json({
       exito: true,
-      mensaje: 'Precio actualizado',
+      mensaje: resultado.actualizado ? 'Precio actualizado' : 'Sin cambios',
       datos: resultado
     });
   } catch (error) {
+    console.error('Error actualizando precio:', error);
     res.status(500).json({
       exito: false,
       error: error.message
@@ -214,18 +376,29 @@ router.post('/:id/actualizar-precio', async (req, res) => {
   }
 });
 
-// Detectar cambios
+// Get /api/productos/:id/cambios-precio - cambios de precio
 router.get('/:id/cambios-precio', async (req, res) => {
   try {
+    const id = parseInt(req.params.id);
     const dias = parseInt(req.query.dias) || 7;
-    const cambios = await HistorialPrecios.detectarCambiosDePrecios(req.params.id, dias);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        exito: false,
+        error: 'ID de producto inválido'
+      });
+    }
+
+    const cambios = await HistorialPrecios.detectarCambiosDePrecios(id, dias);
 
     res.json({
       exito: true,
       cantidad: cambios.length,
+      dias: dias,
       datos: cambios
     });
   } catch (error) {
+    console.error('Error obteniendo cambios de precio:', error);
     res.status(500).json({
       exito: false,
       error: error.message
