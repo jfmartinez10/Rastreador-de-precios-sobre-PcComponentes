@@ -2,15 +2,11 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const pool = new Pool({
-  connectionString: process.env.DB_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: process.env.DB_URL
 });
 
 pool.on('error', (err) => {
-  console.error('Error inesperado en el cliente de PostgreSQL:', err);
-  process.exit(-1);
+  console.error('❌ Error inesperado en el cliente de PostgreSQL:', err);
 });
 
 const query = async (text, params) => {
@@ -18,10 +14,14 @@ const query = async (text, params) => {
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    console.log('Query ejecutada:', { text: text.substring(0, 50), duration, rows: res.rowCount });
+    console.log('🔍 Query ejecutada:', { 
+      text: text.substring(0, 60) + '...', 
+      duration: `${duration}ms`, 
+      rows: res.rowCount 
+    });
     return res;
   } catch (error) {
-    console.error('Error en query:', error);
+    console.error('❌ Error en query:', error.message);
     throw error;
   }
 };
@@ -43,11 +43,12 @@ const transaction = async (callback) => {
 
 const testConnection = async () => {
   try {
-    const res = await query('SELECT NOW()');
-    console.log('✅ Conexión a PostgreSQL exitosa:', res.rows[0].now);
+    const res = await query('SELECT NOW() as now, version() as version');
+    console.log('✅ Conexión a Supabase exitosa');
+    console.log('📅 Fecha servidor:', res.rows[0].now);
     return true;
   } catch (error) {
-    console.error('❌ Error conectando a PostgreSQL:', error.message);
+    console.error('❌ Error conectando a Supabase:', error.message);
     return false;
   }
 };
