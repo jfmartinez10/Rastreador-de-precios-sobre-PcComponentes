@@ -1,35 +1,26 @@
 {
-  "name": "rastreador-de-precios-sobre-pccomponentes",
+  "name": "rastreador-de-precios-pccomponentes",
   "version": "1.0.0",
+  "description": "Rastreador de precios para PCComponentes - TFG",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --env-file=.env server.js",
-    "start": "node --env-file=.env server.js"
+    "dev": "node --env-file=.env --watch server.js",
+    "start": "node --env-file=.env server.js",
+    "init-db": "node --env-file=.env src/scripts/initDB.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jfmartinez10/Rastreador-de-precios-sobre-PcComponentes.git"
-  },
-  "keywords": [],
+  "keywords": [
+    "scraping",
+    "price-tracker",
+    "pccomponentes"
+  ],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jfmartinez10/Rastreador-de-precios-sobre-PcComponentes/issues"
-  },
-  "homepage": "https://github.com/jfmartinez10/Rastreador-de-precios-sobre-PcComponentes#readme",
-  "description": "",
   "dependencies": {
-    "axios": "^1.13.2",
-    "cheerio": "^1.1.2",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "node-cron": "^4.2.1",
-    "pg": "^8.16.3",
-    "puppeteer": "^24.35.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.11.3",
+    "puppeteer": "^21.6.1"
   }
 }
