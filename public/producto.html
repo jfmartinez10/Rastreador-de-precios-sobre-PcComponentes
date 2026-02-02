@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Producto - CamelClone PC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="productoDetalle.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>CamelClone PC</span>
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </nav>
+    </header>
+
+    <div class="product-detail-container">
+        <div class="product-header">
+            <h1 id="productName">Cargando producto...</h1>
+            <p id="productStore" style="color: #6c757d;"></p>
+        </div>
+
+        <div class="product-main">
+            <div class="product-image-section">
+                <img id="productImage" src="" alt="Producto" class="product-image-large">
+            </div>
+
+            <div class="product-info-section">
+                <div class="price-info">
+                    <div class="current-price-display" id="currentPrice">--</div>
+                    
+                    <div class="price-stats">
+                        <div class="price-stat">
+                            <div class="price-stat-label">Precio Mínimo</div>
+                            <div class="price-stat-value" id="minPrice">--</div>
+                        </div>
+                        <div class="price-stat">
+                            <div class="price-stat-label">Precio Máximo</div>
+                            <div class="price-stat-value" id="maxPrice">--</div>
+                        </div>
+                        <div class="price-stat">
+                            <div class="price-stat-label">Precio Promedio</div>
+                            <div class="price-stat-value" id="avgPrice">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="updatePriceBtn" class="btn btn-primary">
+                        <i class="fas fa-sync"></i>
+                        Actualizar Precio
+                    </button>
+                    <a id="productLinkBtn" href="#" target="_blank" class="btn btn-secondary">
+                        Ver en PCComponentes
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-history"></i>
+                    Historial de Precios
+                </h2>
+            </div>
+
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div class="period-filters">
+                    <button class="period-btn active" data-period="all">Todo</button>
+                    <button class="period-btn" data-period="1year">1 Año</button>
+                    <button class="period-btn" data-period="6months">6 Meses</button>
+                    <button class="period-btn" data-period="3months">3 Meses</button>
+                </div>
+
+                <table class="price-history-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando historial...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="productoDetalle.js"></script>
+</body>
+</html>
