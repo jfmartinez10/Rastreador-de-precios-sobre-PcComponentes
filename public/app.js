@@ -1,202 +1,339 @@
+// Variables globales
+let currentPage = {
+    chollos: 1,
+    todos: 1
+};
+
+const ITEMS_PER_PAGE = 12;
+const ITEMS_CHOLLOS_PAGE = 8;
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    const topDropsGrid = document.getElementById('topDropsGrid');
-    const productsGrid = document.getElementById('productsGrid');
+    console.log('🚀 Iniciando aplicación...');
+    
     const urlInput = document.getElementById('urlInput');
     const addBtn = document.getElementById('addBtn');
-    const modal = document.getElementById('historyModal');
-    const closeBtn = document.querySelector('.close-btn');
-    const forceUpdateBtn = document.getElementById('forceUpdateBtn');
     
-    let priceChart = null;
-    let currentProductId = null;
-
-    // Cargar datos iniciales
-    if(topDropsGrid) loadTopDrops();
-    if(productsGrid) loadAllProducts();
-
-    // Event Listeners
-    if(addBtn) addBtn.addEventListener('click', handleAddProduct);
-    if(closeBtn) closeBtn.addEventListener('click', closeModal);
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-    
-    if(forceUpdateBtn) {
-        forceUpdateBtn.addEventListener('click', () => {
-            if(currentProductId) updateProductPrice(currentProductId);
+    if (urlInput && addBtn) {
+        addBtn.addEventListener('click', añadirProducto);
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') añadirProducto();
         });
     }
-
-    // Funciones principales
-    async function loadTopDrops() {
-        try {
-            const res = await fetch('/api/analytics/mejores-ofertas?limit=4');
-            const data = await res.json();
-            
-            if (data.exito && data.datos.length > 0) {
-                renderGrid(topDropsGrid, data.datos, true);
-            } else {
-                topDropsGrid.innerHTML = '<div class="empty-state">No hay ofertas destacadas todavía. ¡Añade productos!</div>';
-            }
-        } catch (error) {
-            console.error('Error cargando chollos:', error);
-            topDropsGrid.innerHTML = '<div class="error">Error cargando ofertas.</div>';
-        }
-    }
-
-    async function loadAllProducts() {
-        try {
-            const res = await fetch('/api/productos?limit=20');
-            const data = await res.json();
-            
-            if (data.exito && data.datos.length > 0) {
-                renderGrid(productsGrid, data.datos);
-            } else {
-                productsGrid.innerHTML = '<div class="empty-state">No hay productos rastreados. Pega una URL arriba para empezar.</div>';
-            }
-        } catch (error) {
-            console.error('Error cargando productos:', error);
-            productsGrid.innerHTML = '<div class="error">Error cargando productos.</div>';
-        }
-    }
-
-    async function handleAddProduct() {
-        const url = urlInput.value.trim();
-        if (!url) return showToast('Introduce una URL válida', 'error');
-
-        addBtn.disabled = true;
-        addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rastreando...';
-
-        try {
-            const res = await fetch('/api/productos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await res.json();
-
-            if (data.exito) {
-                showToast('✅ Producto añadido correctamente', 'success');
-                urlInput.value = '';
-                loadAllProducts(); // Recargar lista
-                loadTopDrops();
-            } else {
-                showToast(`❌ Error: ${data.error}`, 'error');
-            }
-        } catch (error) {
-            showToast('❌ Error de conexión', 'error');
-        } finally {
-            addBtn.disabled = false;
-            addBtn.innerHTML = '<i class="fas fa-plus"></i> Rastrear';
-        }
-    }
-
-    function renderGrid(container, products, isDeal = false) {
-        container.innerHTML = products.map(p => `
-            <div class="card">
-                <div class="card-img-container">
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/200'}" alt="${p.nombre}" class="card-img">
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title" title="${p.nombre}">${p.nombre}</h3>
-                    <div class="price-container">
-                        <span class="current-price">${p.precio_actual || p.precio}€</span>
-                        ${isDeal ? `<span class="discount-badge">-${p.porcentaje_descuento}%</span>` : ''}
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="openHistory('${p.id}', '${p.nombre.replace(/'/g, "\\'") }', '${p.url}')" class="btn btn-outline">
-                            <i class="fas fa-chart-line"></i> Historial
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // Exponer función al window para el onclick del string template
-    window.openHistory = async (id, nombre, url) => {
-        currentProductId = id;
-        document.getElementById('modalTitle').innerText = nombre;
-        document.getElementById('productLink').href = url;
-        modal.classList.add('active');
-        
-        // Destruir gráfica anterior si existe
-        if (priceChart) priceChart.destroy();
-        
-        // Cargar datos de historial
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        
-        try {
-            const res = await fetch(`/api/productos/${id}/historial`);
-            const data = await res.json();
-            
-            if (data.exito) {
-                const precios = data.datos.reverse(); // Ordenar cronológicamente
-                const labels = precios.map(h => new Date(h.fecha_captura).toLocaleDateString());
-                const values = precios.map(h => h.precio);
-
-                priceChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Precio (€)',
-                            data: values,
-                            borderColor: '#ff6000',
-                            backgroundColor: 'rgba(255, 96, 0, 0.1)',
-                            fill: true,
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error cargando historial', error);
-        }
-    };
-
-    async function updateProductPrice(id) {
-        const btn = document.getElementById('forceUpdateBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
-        
-        try {
-            const res = await fetch(`/api/productos/${id}/actualizar-precio`, { method: 'POST' });
-            const data = await res.json();
-            
-            if (data.exito) {
-                showToast('Precio actualizado correctamente', 'success');
-                // Recargar gráfica simulando click
-                const nombre = document.getElementById('modalTitle').innerText;
-                const url = document.getElementById('productLink').href;
-                window.openHistory(id, nombre, url);
-                loadAllProducts(); // Actualizar grids de fondo
-            } else {
-                showToast('No hubo cambios o error', 'error');
-            }
-        } catch (e) {
-            showToast('Error al actualizar', 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar Precio Ahora';
-        }
-    }
-
-    function closeModal() {
-        modal.classList.remove('active');
-        currentProductId = null;
-    }
-
-    function showToast(msg, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<span>${msg}</span> <i class="fas fa-times" onclick="this.parentElement.remove()" style="cursor:pointer; margin-left:10px;"></i>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+    
+    // Cargar contenido según la página actual
+    const path = window.location.pathname;
+    
+    if (path === '/' || path.includes('index.html')) {
+        cargarChollosDestacados();
+        cargarProductosRecientes();
+    } else if (path.includes('chollos.html')) {
+        cargarChollosPaginados(1);
+    } else if (path.includes('productos.html')) {
+        cargarProductosPaginados(1);
     }
 });
+
+// Añadir producto
+async function añadirProducto() {
+    const urlInput = document.getElementById('urlInput');
+    const addBtn = document.getElementById('addBtn');
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+        mostrarToast('Por favor, ingresa una URL válida', 'warning');
+        return;
+    }
+    
+    if (!url.includes('pccomponentes.com')) {
+        mostrarToast('La URL debe ser de PCComponentes', 'error');
+        return;
+    }
+    
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Rastreando...</span>';
+    
+    try {
+        const res = await fetch('/api/productos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        
+        const data = await res.json();
+        
+        if (data.exito) {
+            mostrarToast(
+                data.yaExistia ? 'Este producto ya está en seguimiento' : '✅ Producto añadido correctamente',
+                data.yaExistia ? 'info' : 'success'
+            );
+            urlInput.value = '';
+            
+            // Redirigir al producto después de un breve delay
+            setTimeout(() => {
+                const productoId = data.datos?.producto?.id || data.datos?.id;
+                if (productoId) {
+                    window.location.href = `/producto.html?id=${productoId}`;
+                } else {
+                    // Fallback: recargar si no hay ID
+                    location.reload();
+                }
+            }, 800);
+        } else {
+            mostrarToast(data.error || 'Error al añadir producto', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('Error de conexión', 'error');
+    } finally {
+        addBtn.disabled = false;
+        addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Rastrear</span>';
+    }
+}
+
+// Cargar chollos destacados (index)
+async function cargarChollosDestacados() {
+    const grid = document.getElementById('chollosGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span>Cargando ofertas...</span></div>';
+    
+    try {
+        const res = await fetch('/api/analytics/mejores-ofertas?limite=4');
+        const data = await res.json();
+        
+        if (data.exito && data.datos.length > 0) {
+            grid.innerHTML = data.datos.map(producto => crearTarjetaProducto(producto)).join('');
+        } else {
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay ofertas disponibles</p></div>';
+        }
+    } catch (error) {
+        console.error('Error cargando chollos:', error);
+        grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error cargando ofertas</p></div>';
+    }
+}
+
+// Cargar productos recientes (index)
+async function cargarProductosRecientes() {
+    const grid = document.getElementById('todosGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span>Cargando productos...</span></div>';
+    
+    try {
+        const res = await fetch('/api/productos?limite=4&offset=0');
+        const data = await res.json();
+        
+        if (data.exito && data.datos.length > 0) {
+            grid.innerHTML = data.datos.map(producto => crearTarjetaProducto(producto)).join('');
+        } else {
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay productos rastreados</p></div>';
+        }
+    } catch (error) {
+        console.error('Error cargando productos:', error);
+        grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error cargando productos</p></div>';
+    }
+}
+
+// Cargar chollos paginados (chollos.html)
+async function cargarChollosPaginados(page) {
+    const grid = document.getElementById('chollosGrid');
+    const paginationContainer = document.getElementById('pagination');
+    
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span>Cargando ofertas...</span></div>';
+    
+    try {
+        const offset = (page - 1) * ITEMS_CHOLLOS_PAGE;
+        const res = await fetch(`/api/analytics/mejores-ofertas?limite=${ITEMS_CHOLLOS_PAGE}&offset=${offset}`);
+        const data = await res.json();
+        
+        if (data.exito && data.datos.length > 0) {
+            grid.innerHTML = data.datos.map(producto => crearTarjetaProducto(producto)).join('');
+            
+            if (paginationContainer && data.total > ITEMS_CHOLLOS_PAGE) {
+                const totalPages = Math.ceil(data.total / ITEMS_CHOLLOS_PAGE);
+                paginationContainer.innerHTML = crearPaginacion(page, totalPages, 'chollos');
+            } else if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
+        } else {
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay ofertas disponibles</p></div>';
+            if (paginationContainer) paginationContainer.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Error cargando chollos:', error);
+        grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error cargando ofertas</p></div>';
+    }
+}
+
+// Cargar productos paginados (productos.html)
+async function cargarProductosPaginados(page) {
+    const grid = document.getElementById('todosGrid');
+    const paginationContainer = document.getElementById('pagination');
+    
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span>Cargando productos...</span></div>';
+    
+    try {
+        const offset = (page - 1) * ITEMS_PER_PAGE;
+        const res = await fetch(`/api/productos?limite=${ITEMS_PER_PAGE}&offset=${offset}`);
+        const data = await res.json();
+        
+        if (data.exito && data.datos.length > 0) {
+            grid.innerHTML = data.datos.map(producto => crearTarjetaProducto(producto)).join('');
+            
+            if (paginationContainer && data.total > ITEMS_PER_PAGE) {
+                const totalPages = Math.ceil(data.total / ITEMS_PER_PAGE);
+                paginationContainer.innerHTML = crearPaginacion(page, totalPages, 'productos');
+            } else if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
+        } else {
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No hay productos rastreados</p></div>';
+            if (paginationContainer) paginationContainer.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Error cargando productos:', error);
+        grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error cargando productos</p></div>';
+    }
+}
+
+// Crear tarjeta de producto
+function crearTarjetaProducto(producto) {
+    const disponible = producto.disponible !== false;
+    const descuento = producto.porcentaje_descuento ? parseInt(producto.porcentaje_descuento) : 0;
+    const precioActual = producto.precio_actual ? parseFloat(producto.precio_actual) : null;
+    
+    // Calcular precio anterior SI HAY descuento
+    let precioAnterior = null;
+    if (descuento >= 5 && precioActual) {
+        precioAnterior = precioActual / (1 - descuento / 100);
+    }
+    
+    const cardClasses = ['product-card'];
+    if (!disponible) {
+        cardClasses.push('unavailable');
+    }
+    
+    const imagenFiltro = disponible ? '' : ' style="filter: grayscale(70%) brightness(0.8);"';
+    
+    // Badge de descuento
+    const badgeDescuento = descuento >= 5 ? `
+        <div class="discount-badge">-${descuento}%</div>
+    ` : '';
+    
+    // Badge de agotado
+    const badgeDisponibilidad = !disponible ? `
+        <span class="availability-badge unavailable">
+            <i class="fas fa-exclamation-circle"></i>
+            AGOTADO
+        </span>
+    ` : '';
+    
+    // Precio con o sin tachado
+    let precioHTML;
+    if (precioAnterior && descuento >= 5) {
+        precioHTML = `
+            <div>
+                <div class="precio-tachado">
+                    ${precioAnterior.toFixed(2)}€
+                </div>
+                <span class="product-price">${precioActual.toFixed(2)}€</span>
+                ${badgeDisponibilidad}
+            </div>
+        `;
+    } else if (precioActual) {
+        precioHTML = `
+            <div>
+                <span class="product-price">${precioActual.toFixed(2)}€</span>
+                ${badgeDisponibilidad}
+            </div>
+        `;
+    } else {
+        precioHTML = `
+            <div>
+                <span class="product-price">--</span>
+                ${badgeDisponibilidad}
+            </div>
+        `;
+    }
+    
+    return `
+        <div class="${cardClasses.join(' ')}" onclick="window.location.href='/producto.html?id=${producto.id}'">
+            <div class="product-image-container">
+                ${badgeDescuento}
+                <img src="${producto.imagen_url || 'https://via.placeholder.com/300?text=Sin+Imagen'}" 
+                     alt="${producto.nombre}" 
+                     class="product-image"${imagenFiltro}
+                     loading="lazy">
+            </div>
+            <div class="product-body">
+                <h3 class="product-title">${producto.nombre}</h3>
+                <div class="product-price-container">
+                    ${precioHTML}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Paginación
+function crearPaginacion(currentPage, totalPages, tipo) {
+    let html = '';
+    
+    html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="cambiarPagina(${currentPage - 1}, '${tipo}')">
+        <i class="fas fa-chevron-left"></i> Anterior
+    </button>`;
+    
+    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+        const pageNum = i === 1 ? i : 
+                        i === 5 ? totalPages :
+                        currentPage <= 3 ? i :
+                        currentPage >= totalPages - 2 ? totalPages - 5 + i :
+                        currentPage - 3 + i;
+        
+        html += `<button class="pagination-btn ${currentPage === pageNum ? 'active' : ''}" 
+                         onclick="cambiarPagina(${pageNum}, '${tipo}')">${pageNum}</button>`;
+    }
+    
+    html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="cambiarPagina(${currentPage + 1}, '${tipo}')">
+        Siguiente <i class="fas fa-chevron-right"></i>
+    </button>`;
+    
+    return html;
+}
+
+function cambiarPagina(page, tipo) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (tipo === 'chollos') {
+        currentPage.chollos = page;
+        cargarChollosPaginados(page);
+    } else {
+        currentPage.todos = page;
+        cargarProductosPaginados(page);
+    }
+}
+
+// Toast notifications
+function mostrarToast(mensaje, tipo = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `
+        <span>${mensaje}</span>
+        <i class="fas fa-times" onclick="this.parentElement.remove()"></i>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
