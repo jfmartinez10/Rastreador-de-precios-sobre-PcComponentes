@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mejores Ofertas - CamelClone PC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>CamelClone PC</span>
+            </a>
+            <div class="search-bar">
+                <input type="text" id="urlInput" class="search-input" placeholder="Pega una URL de PCComponentes...">
+                <button id="addBtn" class="search-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Rastrear</span>
+                </button>
+            </div>
+            <div class="nav-menu">
+                <a href="chollos.html" class="nav-link"><i class="fas fa-fire"></i> Chollos</a>
+                <a href="productos.html" class="nav-link"><i class="fas fa-boxes"></i> Todos</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-fire"></i> Mejores Ofertas</h2>
+                <p class="section-subtitle">Todas las ofertas destacadas con los mayores descuentos</p>
+            </div>
+            
+            <div id="chollosGrid" class="products-grid">
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando ofertas...</div>
+            </div>
+
+            <div id="pagination" class="pagination-container">
+
+            </div>
+        </section>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
