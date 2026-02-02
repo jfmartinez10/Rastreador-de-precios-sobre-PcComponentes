@@ -1,80 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rastreador PCComponentes - CamelClone</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- Chart.js para gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome para iconos -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-  </head>
-  <body>
-    <header>
-      <nav>
-        <a href="#" class="logo"><i class="fas fa-camel"></i> CamelClone PC</a>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CamelClone PC - Rastreador de Precios PCComponentes</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>CamelClone PC</span>
+            </a>
 
-        <div class="search-bar">
-          <input
-            type="text"
-            id="urlInput"
-            class="search-input"
-            placeholder="Pega una URL de PCComponentes para trackear..."
-          />
-          <button id="addBtn" class="search-btn">
-            <i class="fas fa-plus"></i> Rastrear
-          </button>
-        </div>
+            <div class="search-bar">
+                <input 
+                    type="text" 
+                    id="urlInput" 
+                    class="search-input" 
+                    placeholder="Pega una URL de PCComponentes para rastrear..."
+                >
+                <button id="addBtn" class="search-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Rastrear</span>
+                </button>
+            </div>
 
-        <div class="menu">
-          <a href="#chollos" class="btn btn-primary">🔥 Chollos</a>
-        </div>
-      </nav>
+            <div class="nav-menu">
+                <a href="chollos.html" class="nav-link">
+                    <i class="fas fa-fire"></i> Chollos
+                </a>
+                <a href="productos.html" class="nav-link">
+                    <i class="fas fa-boxes"></i> Todos
+                </a>
+            </div>
+        </nav>
     </header>
 
-    <main>
-      <!-- Sección de Mejores Ofertas (Top Drops) -->
-      <section id="chollos">
-        <h2>🔥 Mejores Ofertas (Top Descuentos)</h2>
-        <div id="topDropsGrid" class="grid">
-          <div class="loading">Cargando mejores ofertas...</div>
-        </div>
-      </section>
+    <main class="main-content">
+        
+        <section id="chollos" class="section">
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <h2 class="section-title">
+                            <i class="fas fa-fire"></i>
+                            Mejores Ofertas
+                        </h2>
+                        <p class="section-subtitle">Los productos con mayores descuentos</p>
+                    </div>
+                    <a href="chollos.html" class="btn btn-secondary">
+                        Ver todas
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div id="chollosGrid" class="products-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Cargando mejores ofertas...</span>
+                </div>
+            </div>
+        </section>
 
-      <!-- Sección de Recientes / Todos -->
-      <section id="todos">
-        <h2>📦 Productos Rastreaciones Recientemente</h2>
-        <div id="productsGrid" class="grid">
-          <div class="loading">Cargando productos...</div>
-        </div>
-      </section>
+        <section id="todos" class="section">
+            <div class="section-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <h2 class="section-title">
+                            <i class="fas fa-boxes"></i>
+                            Todos los Productos
+                        </h2>
+                        <p class="section-subtitle">Productos rastreados recientemente</p>
+                    </div>
+                    <a href="productos.html" class="btn btn-secondary">
+                        Ver todos
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div id="todosGrid" class="products-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Cargando productos...</span>
+                </div>
+            </div>
+        </section>
+
     </main>
-
-    <!-- Modal para Historial de Precios -->
-    <div id="historyModal" class="modal">
-      <div class="modal-content">
-        <button class="close-btn">&times;</button>
-        <h2 id="modalTitle">Historial de Precios</h2>
-        <div style="height: 400px; position: relative">
-          <canvas id="priceChart"></canvas>
-        </div>
-        <div class="card-actions" style="margin-top: 1rem">
-          <button id="forceUpdateBtn" class="btn btn-primary">
-            <i class="fas fa-sync"></i> Actualizar Precio Ahora
-          </button>
-          <a id="productLink" href="#" target="_blank" class="btn btn-outline"
-            >Ver en Tienda <i class="fas fa-external-link-alt"></i
-          ></a>
-        </div>
-      </div>
-    </div>
 
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="app.js"></script>
-  </body>
+</body>
 </html>
