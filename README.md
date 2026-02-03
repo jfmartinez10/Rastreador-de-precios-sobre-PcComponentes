@@ -12,7 +12,7 @@ Un sistema completo de monitorización de precios para **PCComponentes.com**. A�
 
 ---
 
-## 📑 Tabla de Contenido
+## Índice
 
 1. [Características principales](#características-principales)
 2. [Arquitectura del sistema](#arquitectura-del-sistema)
@@ -32,7 +32,7 @@ Un sistema completo de monitorización de precios para **PCComponentes.com**. A�
 
 ---
 
-## ⭐ Características principales
+## Características principales
 
 - **Scraping automático** de precios desde PCComponentes usando Puppeteer con evasión de bots.
 - **Historial completo de precios** con filtros por periodo (3 meses, 6 meses, 1 año, todo).
@@ -46,7 +46,7 @@ Un sistema completo de monitorización de precios para **PCComponentes.com**. A�
 
 ---
 
-## 🏗️ Arquitectura del sistema
+## Arquitectura del sistema
 
 ```bash
 .
@@ -85,7 +85,7 @@ El sistema sigue una estructura capas clásica:
 
 ---
 
-## 📂 Estructura de archivos
+## Estructura de archivos
 
 | Carpeta | Contenido |
 |---|---|
@@ -100,7 +100,7 @@ El sistema sigue una estructura capas clásica:
 
 ---
 
-## 📋 Requisitos previos
+## Requisitos previos
 
 Antes de empezar, asegúrate de tener instalado lo siguiente:
 
@@ -115,7 +115,7 @@ Antes de empezar, asegúrate de tener instalado lo siguiente:
 
 ---
 
-## 🚀 Instalación paso a paso
+## Instalación paso a paso
 
 ### Paso 1 — Clonar el repositorio
 
@@ -175,7 +175,7 @@ SCRAPE_INTERVAL_MINUTES=60
 USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 ```
 
-> 🔐 **Nunca subas el archivo `.env` al repositorio.** Ya está en el `.gitignore`, pero es buena práctica comprobarlo.
+> **Nunca subas el archivo `.env` al repositorio.** Ya está en el `.gitignore`, pero es buena práctica comprobarlo.
 
 ### Paso 5 — Inicializar la base de datos
 
@@ -214,7 +214,7 @@ Abre el navegador y ve a **http://localhost:3000** — la aplicación debería e
 
 ---
 
-## ⚙️ Configuración del entorno
+## Configuración del entorno
 
 ![Alertas tipos](public/imgs/env.example.png)
 
@@ -231,7 +231,7 @@ El archivo `.env.example` contiene todas las variables que el proyecto puede usa
 
 ---
 
-## 🗄️ Base de datos
+## Base de datos
 
 ![Esquema BD](public/imgs/db.png)
 
@@ -257,7 +257,7 @@ node --env-file=.env src/scripts/migracionDescuento.js
 
 ---
 
-## 📦 Comandos disponibles
+## Comandos disponibles
 
 Estos son los scripts que define el `package.json`:
 
@@ -269,7 +269,7 @@ Estos son los scripts que define el `package.json`:
 
 ---
 
-## 🖥️ Cómo usar la aplicación
+## Cómo usar la aplicación
 
 ### Añadir un producto
 
@@ -289,15 +289,15 @@ Estos son los scripts que define el `package.json`:
 
 ### Actualizar el precio manualmente
 
-En la página de detalle de cualquier producto hay un botón **🔄 Actualizar Precio**. Al pulsarlo, el sistema hace un scraping en ese momento y, si el precio ha cambiado, lo registra inmediatamente sin esperar a la tarea automática.
+En la página de detalle de cualquier producto hay un botón ** Actualizar Precio**. Al pulsarlo, el sistema hace un scraping en ese momento y, si el precio ha cambiado, lo registra inmediatamente sin esperar a la tarea automática.
 
 ---
 
-## 🛣️ API — Endpoints
+## API — Endpoints
 
 ![Endpoints](public/imgs/api.png)
 
-### 📦 /api/productos
+### /api/productos
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -314,7 +314,7 @@ En la página de detalle de cualquier producto hay un botón **🔄 Actualizar P
 | POST | `/api/productos/:id/actualizar-precio` | Forzar una actualización de precio inmediata |
 | GET | `/api/productos/:id/cambios-precio` | Detectar cambios de precio significativos |
 
-### 📊 /api/analytics
+### /api/analytics
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -325,7 +325,7 @@ En la página de detalle de cualquier producto hay un botón **🔄 Actualizar P
 | GET | `/api/analytics/estadisticas-tienda` | Estadísticas agrupadas por tienda |
 | GET | `/api/analytics/resumen-general` | Resumen global: total productos, alertas, etc. |
 
-### 🔔 /api/alertas
+### /api/alertas
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -340,7 +340,7 @@ En la página de detalle de cualquier producto hay un botón **🔄 Actualizar P
 | GET | `/api/alertas/estadisticas` | Estadísticas de alertas |
 | GET | `/api/alertas/notificaciones` | Historial de notificaciones generadas |
 
-### 💚 Sistema
+### Sistema
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -349,7 +349,7 @@ En la página de detalle de cualquier producto hay un botón **🔄 Actualizar P
 
 ---
 
-## 🕷️ Flujo del scraping
+## Flujo del scraping
 
 ![Flujo scraping](public/imgs/flujoScraping.png)
 ![Flujo scraping](public/imgs/muestra1.png)
@@ -382,7 +382,7 @@ PCComponentes bloquea los scraping con Axios (peticiones HTTP directas). Por eso
 
 ---
 
-## 🔔 Sistema de alertas
+## Sistema de alertas
 
 ![Tipos de alertas](public/imgs/alertas.png)
 
@@ -413,7 +413,7 @@ GET /api/alertas/notificaciones
 
 ---
 
-## ⏰ Tareas automáticas (Cron)
+## Tareas automáticas (Cron)
 
 El servidor incluye dos tareas programadas gestionadas por `node-cron`:
 
@@ -432,7 +432,7 @@ Entre cada producto durante la actualización masiva hay un **delay de 3 segundo
 
 ---
 
-## 🔑 Variables de entorno
+## Variables de entorno
 
 | Variable | Obligatoria | Valor por defecto | Descripción |
 |---|---|---|---|
@@ -447,7 +447,7 @@ El archivo `.env.example` ya contiene todas estas variables a modo de plantilla.
 
 ---
 
-## 🛠️ Errores comunes y soluciones
+## Errores comunes y soluciones
 
 ### ❌ "No se pudo conectar a la base de datos"
 
@@ -508,7 +508,7 @@ Si sigue fallando, abre la consola de Supabase y ejecuta manualmente el contenid
 
 ---
 
-## 📝 Notas adicionales
+## Notas adicionales
 
 - **El proyecto usa ES Modules** (`"type": "module"` en `package.json`), así que todos los imports son con la sintaxis `import/export`.
 - **Las variables de entorno se cargan con `--env-file=.env`** (funcionalidad nativa de Node.js 20+), sin necesidad de usar `dotenv`.
