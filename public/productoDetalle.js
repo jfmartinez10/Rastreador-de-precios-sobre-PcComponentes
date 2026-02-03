@@ -32,6 +32,13 @@ function configurarEventListeners() {
     if (updateBtn) {
         updateBtn.addEventListener('click', () => actualizarPrecio(currentProductId));
     }
+
+    const compararBtn = document.getElementById('compararBtn');
+    if (compararBtn) {
+        compararBtn.addEventListener('click', () => {
+            window.location.href = `/comparacion.html?id=${currentProductId}`;
+        });
+    }
 }
 
 // Cargar datos
@@ -47,7 +54,7 @@ async function cargarDatosProducto(id) {
         const producto = dataProducto.datos;
         const agotado = producto.disponible === false;
         
-        document.title = `${producto.nombre} - CamelClone PC`;
+        document.title = `${producto.nombre} - PcDrop`;
         document.getElementById('productName').textContent = producto.nombre;
         
         const imagenElement = document.getElementById('productImage');
