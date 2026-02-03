@@ -9,6 +9,7 @@ import cron from 'node-cron';
 import productosRoutes from './src/routes/productos.js';
 import analyticsRoutes from './src/routes/analytics.js';
 import alertasRoutes from './src/routes/alertas.js';
+import comparacionRoutes from './src/routes/comparacion.js';
 import scraperService from './src/services/scraperService.js';
 import alertasService from './src/services/alertasService.js';
 
@@ -38,13 +39,14 @@ app.use((req, res, next) => {
 app.use('/api/productos', productosRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/alertas', alertasRoutes);
+app.use('/api/comparacion', comparacionRoutes);
 
 // Ruta raíz de la API
 app.get('/api', (req, res) => {
   res.json({
-    nombre: 'API de Rastreador de Precios PCComponentes',
+    nombre: 'API de PcDrop',
     version: '1.0.0',
-    descripcion: 'Sistema de monitorización de precios al estilo CamelCamel',
+    descripcion: 'Sistema de monitorización de precios PcDrop',
     endpoints: {
       productos: {
         listar: 'GET /api/productos',
@@ -80,6 +82,12 @@ app.get('/api', (req, res) => {
         verificar: 'POST /api/alertas/verificar',
         estadisticas: 'GET /api/alertas/estadisticas',
         notificaciones: 'GET /api/alertas/notificaciones'
+      },
+      comparacion: {
+        comparar_producto: 'GET /api/comparacion/:id',
+        comparar_simple: 'GET /api/comparacion/:id/simple',
+        comparar_batch: 'POST /api/comparacion/batch',
+        confiabilidad: 'GET /api/comparacion/:id/confiabilidad'
       },
       sistema: {
         salud: 'GET /api/salud',
