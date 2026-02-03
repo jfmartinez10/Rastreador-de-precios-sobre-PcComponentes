@@ -2,9 +2,9 @@
 
 ![Hero Banner](public/imgs/home.png)
 
-# 📈 CamelClone PC — Rastreador de Precios de PCComponentes
+# 📈 PcDrop — Rastreador de Precios de PCComponentes
 
-Un sistema completo de monitorización de precios para **PCComponentes.com**. Añade productos pegando su URL, y el sistema se encarga de hacer scraping automático, registrar el historial de precios, detectar ofertas y lanzar alertas cuando los precios cambian.
+Un sistema completo de monitorización de precios para **PCComponentes.com**. Añade productos pegando su URL, y el sistema se encarga de hacer scraping automático, registrar el historial de precios, detectar ofertas y lanzar alertas cuando los precios cambian. Incluye comparación de precios con fuentes externas (CamelCamelCamel y Google Shopping) para validar la precisión del rastreador.
 
 ![Tech Stack](public/imgs/producto.png)
 
@@ -25,10 +25,11 @@ Un sistema completo de monitorización de precios para **PCComponentes.com**. A�
 9. [Cómo usar la aplicación](#cómo-usar-la-aplicación)
 10. [API — Endpoints](#api--endpoints)
 11. [Flujo del scraping](#flujo-del-scraping)
-12. [Sistema de alertas](#sistema-de-alertas)
-13. [Tareas automáticas (Cron)](#tareas-automáticas-cron)
-14. [Variables de entorno](#variables-de-entorno)
-15. [Errores comunes y soluciones](#errores-comunes-y-soluciones)
+12. [Sistema de comparación de precios](#sistema-de-comparación-de-precios)
+13. [Sistema de alertas](#sistema-de-alertas)
+14. [Tareas automáticas (Cron)](#tareas-automáticas-cron)
+15. [Variables de entorno](#variables-de-entorno)
+16. [Errores comunes y soluciones](#errores-comunes-y-soluciones)
 
 ---
 
@@ -37,11 +38,12 @@ Un sistema completo de monitorización de precios para **PCComponentes.com**. A�
 - **Scraping automático** de precios desde PCComponentes usando Puppeteer con evasión de bots.
 - **Historial completo de precios** con filtros por periodo (3 meses, 6 meses, 1 año, todo).
 - **Detección de ofertas automática**: los productos con ≥ 30% de descuento se muestran en la sección de "Chollos".
+- **Sistema de comparación de precios** con fuentes externas (CamelCamelCamel y Google Shopping) para validar la precisión del rastreador interno.
 - **Sistema de alertas configurable** con 5 tipos de alerta (precio bajo, precio alto, variación porcentual, disponibilidad, agotado).
 - **Actualización automática** cada 6 horas de todos los productos rastreados.
 - **Verificación de alertas** cada 30 minutos.
-- **API REST completa** con endpoints para productos, analytics y alertas.
-- **Frontend responsive** con 4 páginas, paginación, búsqueda y notificaciones toast.
+- **API REST completa** con endpoints para productos, analytics, alertas y comparación.
+- **Frontend responsive** con 5 páginas (index, chollos, productos, detalle de producto, comparación), paginación, búsqueda y notificaciones toast.
 - **Base de datos en la nube** con Supabase (PostgreSQL).
 
 ---
@@ -93,7 +95,7 @@ El sistema sigue una estructura capas clásica:
 | `src/config/` | Configuración de la conexión a la base de datos |
 | `src/models/` | Modelos que contienen las consultas SQL (producto, historial, alertas) |
 | `src/routes/` | Routers de Express que definan los endpoints de la API |
-| `src/services/` | Lógica de negocio: scraping y verificación de alertas |
+| `src/services/` | Lógica de negocio: scraping, comparación de precios y verificación de alertas |
 | `src/scrapers/` | La clase `PuppeteerScraper` que hace el scraping real |
 | `src/scripts/` | Scripts auxiliares como la inicialización de la BD |
 | `database/` | El archivo `schema.sql` con la estructura de las tablas |
@@ -286,6 +288,7 @@ Estos son los scripts que define el `package.json`:
 | **Chollos** | `/chollos.html` | Todos los productos con ≥ 30% de descuento, paginados (8 por página) |
 | **Productos** | `/productos.html` | Listado completo de todos los productos rastreados, paginados (12 por página) |
 | **Producto** | `/producto.html?id=X` | Detalle de un producto: precio actual, estadísticas, historial y botón de actualización manual |
+| **Comparación** | `/comparacion.html?id=X` | Comparación del producto con fuentes externas (CamelCamelCamel, Google Shopping) |
 
 ### Actualizar el precio manualmente
 
@@ -340,6 +343,14 @@ En la página de detalle de cualquier producto hay un botón ** Actualizar Preci
 | GET | `/api/alertas/estadisticas` | Estadísticas de alertas |
 | GET | `/api/alertas/notificaciones` | Historial de notificaciones generadas |
 
+### /api/comparacion
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/comparacion/:id` | Comparación completa de un producto con fuentes externas (CamelCamelCamel, Google Shopping) |
+| GET | `/api/comparacion/:id/simple` | Versión simplificada y más rápida de la comparación |
+| POST | `/api/comparacion/batch` | Comparar múltiples productos (máx. 5). Body: `{ "product_ids": [1, 2, 3] }` |
+
 ### Sistema
 
 | Método | Endpoint | Descripción |
@@ -379,6 +390,70 @@ PCComponentes bloquea los scraping con Axios (peticiones HTTP directas). Por eso
 - Se sobreescribe `navigator.webdriver` para que no devuelva `true`
 - Se simula un User-Agent real de Chrome/Edge
 - Se añade un **delay de 2 segundos** tras cargar la página para dejar que el contenido dinámico se renderice
+
+---
+
+## Sistema de comparación de precios
+
+![Comparación de precios](public/imgs/comparacion1.PNG)
+![Comparación de precios](public/imgs/comparacion2.PNG)
+
+El sistema incluye una funcionalidad de **comparación de precios con fuentes externas** para validar la precisión del rastreador interno. Esta característica permite contrastar los datos obtenidos mediante scraping con información de otras plataformas de seguimiento de precios.
+
+### Fuentes de comparación
+
+| Fuente | Tipo | Qué proporciona |
+|---|---|---|
+| **CamelCamelCamel** | API de Amazon | Precio actual en Amazon, historial de precios, ASIN del producto |
+| **Google Shopping** | Scraping | Resultados de búsqueda, precios en múltiples tiendas, disponibilidad |
+
+### Cómo funciona
+
+1. **El usuario accede a la página de detalle** de un producto rastreado
+2. **Hace clic en "Comparar con Fuentes Externas"** — se abre la página de comparación
+3. **El sistema ejecuta la comparación**:
+   - Extrae el nombre del producto de la base de datos interna
+   - Busca el producto en CamelCamelCamel (primero por URL de Amazon si existe, luego por búsqueda)
+   - Busca el producto en Google Shopping
+   - Calcula porcentajes de coincidencia de nombres para identificar productos equivalentes
+4. **Se muestran los resultados** con los datos internos y externos lado a lado
+
+### Algoritmo de coincidencia
+
+El sistema implementa un algoritmo de similitud de texto para identificar si los productos encontrados en fuentes externas corresponden al producto rastreado:
+
+- **Normalización**: Se eliminan tildes, mayúsculas, caracteres especiales y palabras comunes (stopwords)
+- **Cálculo de similitud**: Se usa la distancia de Levenshtein para medir la semejanza entre nombres
+- **Umbral de exactitud**: Un producto se considera "exacto" si la coincidencia es ≥ 70%
+- **Advertencias**: Si la coincidencia es < 70%, se muestra un aviso indicando que puede ser un producto relacionado pero no idéntico
+
+### Casos de uso
+
+- **Validación de datos**: Verificar que el scraping interno obtiene precios precisos
+- **Detección de errores**: Identificar si el scraper está extrayendo información incorrecta
+- **Análisis de mercado**: Comparar precios de PCComponentes con Amazon y otras tiendas
+- **Transparencia**: Ofrecer a los usuarios confianza en la precisión del sistema
+
+### Limitaciones conocidas
+
+- CamelCamelCamel solo funciona con productos que también existen en Amazon
+- Google Shopping puede devolver productos similares pero no exactos
+- El scraping de Google Shopping puede fallar si Google detecta automatización
+- Los resultados dependen de la disponibilidad y actualización de las fuentes externas
+
+### Endpoints relacionados
+
+```
+GET /api/comparacion/:id              # Comparación completa de un producto
+GET /api/comparacion/:id/simple       # Comparación rápida (solo datos externos)
+POST /api/comparacion/batch           # Comparar múltiples productos (máx. 5)
+```
+
+### Acceso desde el frontend
+
+La comparación se puede activar desde:
+- **Página de detalle del producto** — Botón "Comparar con Fuentes Externas"
+- **URL directa** — `/comparacion.html?id=PRODUCTO_ID`
 
 ---
 
